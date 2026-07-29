@@ -31,6 +31,10 @@ print(f"Calcul du VWAP pour {annee}-{mois:02d} (du {start_date} au {dernier_jour
 # --- Téléchargement des données du mois ---
 data = yf.download(ticker, start=start_date, end=end_date_exclusive, interval="1d", auto_adjust=False, actions=False)
 
+# Aplatir les colonnes si yfinance renvoie un MultiIndex (Prix, Ticker)
+if isinstance(data.columns, pd.MultiIndex):
+    data.columns = data.columns.droplevel(1)
+
 if "Close" not in data.columns or data["Close"].dropna().empty:
     print("Aucune donnée disponible pour ce mois (marché fermé tout le mois, ticker invalide, ou mois futur).")
 else:
