@@ -1,0 +1,39 @@
+name: Calcul VWAP Nexans
+
+on:
+  schedule:
+    - cron: '0 6 2 * *'   # Le 2 de chaque mois à 6h UTC → calcule le mois précédent (terminé)
+  workflow_dispatch:
+    inputs:
+      mois:
+        description: 'Mois à calculer au format AAAA-MM (laisser vide = mois précédent)'
+        required: false
+        default: ''
+
+jobs:
+  run-vwap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+
+      - name: Exécuter le script
+        env:
+          MOIS: ${{ github.event.inputs.mois }}
+        run: python vwap_nexans.py
+
+      - name: Enregistrer le fichier Excel dans le dépôt
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add Nexans_VWAP.xlsx
+          git commit -m "VWAP mensuel mis à jour" || echo "Rien à commettre"
+          git push
